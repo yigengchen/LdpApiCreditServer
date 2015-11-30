@@ -792,10 +792,10 @@ bool CTcpSocket::TcpSslConnect()
 	if( s1!=1 || s2!=1 )
 	{
 		//ERR_print_errors_fp(stderr);
-		return FALSE;
+		return false;
 	}
 	
-	return TRUE;
+	return true;
 
 }
 
