@@ -703,7 +703,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 	//stResponseInfo.mResValue="{\"resCode\":\"0000\",\"resMsg\":\"请求成功\",\"sign\":\"DEA501DC38718AE61EF0033684AC1759\",\"data\":[{\"resCode\":\"0000\",\"resMsg\":\"请求成功\",\"quotaInfo\":{\"quotaValuePercent\":0,\"quotaID\":\"Z0003\",\"quotaName\":\"手机号码在网时长\",\"quotaType\":1,\"quotaValue\":\"[36,+)\",\"quotaPrice\":100,\"quotaValueType\":2}}]}";
 	printf("Line:%d,stResponseInfo.mResValue=%s\n",__LINE__,stResponseInfo.mResValue.c_str());
 
-	if(!jReader->parse(stResponseInfo.mResValue, jValue))
+	if(!jReader->parse(stResponseInfo.mResValue, jValue,true))
 	{ 
 
 		errorMsg = "5000";
@@ -711,7 +711,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 		return	ERRORNODATA;
 	}
 
-	if(jValue["resCode"].asString()!="0000")
+	if(jValue[string("resCode").c_str()].asString()!="0000")
 	{
 		stResponseInfo.mResValue = "{\r\n\"code\":\"1200\",\r\n\"msg\":\"authentication failure\",\r\n\"data\":\"\"\r\n}";
 		return SUCCESS;
