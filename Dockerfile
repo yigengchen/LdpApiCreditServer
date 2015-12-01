@@ -1,4 +1,4 @@
-FROM gcc:5.2.0
+FROM gcc:4.8
 COPY . /usr/src/datahubapi/src
 WORKDIR /usr/src/datahubapi/src
 RUN make
