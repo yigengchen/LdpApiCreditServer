@@ -3,4 +3,4 @@ COPY . /usr/src/datahubapi/src
 WORKDIR /usr/src/datahubapi/src
 RUN make
 EXPOSE 8088
-CMD ["./config/userQuery.conf "]
+CMD ["./usr/src/datahubapi/config/userQuery.conf "]
