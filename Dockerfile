@@ -1,6 +1,6 @@
 FROM gcc:4.8
-COPY . /usr/src/datahubapi/src
-WORKDIR /usr/src/datahubapi/src
+COPY . /usr/src/datahubapi
+WORKDIR /usr/src/datahubapi/config
 RUN make
 EXPOSE 8088
-CMD ["./usr/src/datahubapi/config/userQuery.conf "]
+CMD ["./$WORKDIR/userQuery.conf "]
