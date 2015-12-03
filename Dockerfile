@@ -3,4 +3,4 @@ ENV WORKDIR /usr/src/datahubapi
 COPY . $WORKDIR
 RUN make clean && make
 EXPOSE 8088
-CMD $WORKDIR/start.sh
+CMD ["start.sh","run"]
