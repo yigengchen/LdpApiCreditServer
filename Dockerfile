@@ -1,7 +1,8 @@
 FROM gcc:4.8
-COPY . /usr/src/datahubapi
-WORKDIR /usr/src/datahubapi
+COPY . /usr/src/myapp
+WORKDIR /usr/src/myapp
 RUN make clean && make
 EXPOSE 8088
-RUN chmod u+x start.sh
-CMD /usr/src/datahubapi/LdpApiServer -c /usr/src/datahubapi/config/userQuery.conf -n query
+COPY start.sh /usr/src/myapp
+CMD ./start.sh
+
