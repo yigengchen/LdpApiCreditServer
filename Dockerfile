@@ -1,4 +1,4 @@
-FROM gcc:4.8
+FROM stephenwithav/centos7-gcc-hhvm:3.7
 COPY . /usr/src/myapp
 WORKDIR /usr/src/myapp
 RUN make clean && make
