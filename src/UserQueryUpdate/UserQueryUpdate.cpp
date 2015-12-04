@@ -491,7 +491,7 @@ void CUserQueryUpdate::Core()
 	Json::FastWriter jFastWriter;
 	std::string sts="yd_zhejiang_mobile_token";
 	std::string strMysqlRecord;
-	const char *pchSqlPermissions = "select access_keyid,secret_privatekey,query_count,goods_count,goods_perm,permissions from dmp_user_permissions2";
+	const char *pchSqlPermissions = "select access_keyid,secret_privatekey,query_count,goods_count,goods_perm,permissions from dmp_user_permissions";
 	BDXPERMISSSION_S mUserInfoVecFields;
 	std::string strUserName;
 	int times = 0;
