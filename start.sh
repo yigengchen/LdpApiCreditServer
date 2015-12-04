@@ -12,5 +12,6 @@ sed -i 's/MYSQL_SERVER_USERNAME/'$MYSQL_USER'/g'  ./config/userQuery.conf
 sed -i 's/MYSQL_SERVER_PASSWORD/'$MYSQL_PASSWORD'/g'  ./config/userQuery.conf
 sed -i 's/MYSQL_SERVER_DBNAME/'$MYSQL_DATABASE'/g'  ./config/userQuery.conf
 sed -i 's/LOCAL_PORT/8088/g'  ./config/userQuery.conf
+sed -i 's/NUM = THREADS/'NUM = 512'/g' ./config/userQuery.conf
 cd /usr/src/myapp && rm -Rf objs src
 ./LdpApiServer -c ./config/userQuery.conf -n query
