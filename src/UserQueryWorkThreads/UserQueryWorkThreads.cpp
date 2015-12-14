@@ -108,8 +108,8 @@ bool CUserQueryWorkThreads::AdWorkInit(const IPPORT_S& stRedisServer,const IPPOR
 	sprintf(chCount,"%d",stRedisServer.m_count);
 	sprintf(chPort,"%d",stRedisServer.m_uiPort);
 	sprintf(chIdx,"%d",stRedisServer.m_idx);
-
 	string strServerList = string(chCount)+";"+string(stRedisServer.m_pchIp)+":"+string(chPort)+","+string(chIdx)+";";
+	LOG(DEBUG,"strServerList=%s",strServerList.c_str());
 	m_pDataRedis->Init(strServerList.c_str());
 
 	//sprintf(chCount,"%d",stRedisServer2.m_count);

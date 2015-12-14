@@ -57,6 +57,12 @@ CUserQueryUpdate::CUserQueryUpdate(const IPPORT_S &stTokenServer,const MYSQL_SER
 	printf("%s\n",mySqlInfo.pchUserName);
 	printf("%s\n",mySqlInfo.pchPassWord);
 	printf("%s\n",mySqlInfo.pchDbName);
+
+	LOG(DEBUG,"mySqlInfo.m_stMysqlLinkInfo.m_pchIp=%s",mySqlInfo.m_stMysqlLinkInfo.m_pchIp);
+	LOG(DEBUG,"mySqlInfo.m_stMysqlLinkInfo.m_uiPort=%d",mySqlInfo.m_stMysqlLinkInfo.m_uiPort);
+	LOG(DEBUG,"mySqlInfo.pchUserName=%s",mySqlInfo.pchUserName);
+	LOG(DEBUG,"mySqlInfo.pchPassWord=%s",mySqlInfo.pchPassWord);
+	LOG(DEBUG,"mySqlInfo.pchDbName=%s",mySqlInfo.pchDbName);
 	printf("======================================\n");
 	m_stMysqlServerInfo->InitMysql(mySqlInfo.m_stMysqlLinkInfo.m_pchIp,mySqlInfo.m_stMysqlLinkInfo.m_uiPort,mySqlInfo.pchUserName,mySqlInfo.pchPassWord,mySqlInfo.pchDbName);
 
@@ -564,6 +570,12 @@ void CUserQueryUpdate::Core()
 								printf("%d ",itr->second.mIntQueryTimes);
 								printf("%d ",itr->second.mIntGoodsTimes);
 								printf("%s ",itr->second.mGoodsFields.c_str());
+								
+								LOG(DEBUG,"itr->first.c_str()=%s",itr->first.c_str());
+								LOG(DEBUG,"itr->second.mResToken.c_str()=%s",itr->second.mResToken.c_str());
+								LOG(DEBUG,"itr->second.mIntQueryTimes=%d",itr->second.mIntQueryTimes);
+								LOG(DEBUG,"itr->second.mIntGoodsTimes=%d",itr->second.mIntGoodsTimes);
+								LOG(DEBUG,"itr->second.mGoodsFields.c_str()=%s",itr->second.mGoodsFields.c_str());
 								for(itr2=itr->second.mVecFields.begin();itr2!=itr->second.mVecFields.end();itr2++)
 								{
 									printf("%s ",(*itr2).c_str());
@@ -581,6 +593,11 @@ void CUserQueryUpdate::Core()
 								printf("%d ",itr->second.mIntQueryTimes);
 								printf("%d ",itr->second.mIntGoodsTimes);
 								printf("%s ",itr->second.mGoodsFields.c_str());
+								LOG(DEBUG,"itr->first.c_str()=%s",itr->first.c_str());
+								LOG(DEBUG,"itr->second.mResToken.c_str()=%s",itr->second.mResToken.c_str());
+								LOG(DEBUG,"itr->second.mIntQueryTimes=%d",itr->second.mIntQueryTimes);
+								LOG(DEBUG,"itr->second.mIntGoodsTimes=%d",itr->second.mIntGoodsTimes);
+								LOG(DEBUG,"itr->second.mGoodsFields.c_str()=%s",itr->second.mGoodsFields.c_str());
 								for(itr2=itr->second.mVecFields.begin();itr2!=itr->second.mVecFields.end();itr2++)
 								{
 									printf("%s ",(*itr2).c_str());

@@ -179,7 +179,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 	int iNoDataFlag = 0,strSource;//,isQueryAction = 0,
 	std::string strPrivateKey="8c42f63e-3611-11e5-8e67-dasdas448c8e";
 	std::string	strMobile,strSign,strParams,strSelect,
-	ssUser,ssValue,ssKey,ssmoidValue,strUser,filterDate,strToken,strKey,strKeyType,strKeyFilter,tempstrKeyFilter,strShopId,strGoodsId,strProvince,strOperator,strMoId;
+	ssUser,ssValue,ssKey,ssmoidValue,strUser,filterDate,strToken,strKey,strMd5Key,strKeyType,strKeyFilter,tempstrKeyFilter,strShopId,strGoodsId,strProvince,strOperator,strMoId;
 	std::string strProvinceReq,strProvinceRes,strProvinceEmptyRes,strProvinceResTag,strOperatorName;
 	std::string 
 	strTimeStamp,strLiveTime,strAccessKeyId,strAccessPrivatekey,strSinature,strTelNo,strTelNoTemp,strMonth,strCertType,strCertCode,strUserName,strAuthId,strCustName,strUserIdentity,strUserTelVerity,strHost,strRemoteValue;
@@ -579,7 +579,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 							LOG(DEBUG,"strKey=%s",strKey.c_str());
 							printf("Line:%d,strKey=%s\n",__LINE__,strKey.c_str());
 
-							
+							strMd5Key = strTelNo + "_" + strCertCode + "_" + strUserName+ "_" + strAction;
 						}
 						break;
 					case 10002:
@@ -612,7 +612,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 							LOG(DEBUG,"errorMsg=%s",errorMsg.c_str());
 							printf("Line:%d,strKey=%s\n",__LINE__,strKey.c_str());
 
-							
+							strMd5Key = strTelNo + "_" + strUserName + "_" + strAction;
 						}
 						break;
 					case 10003:
@@ -667,7 +667,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 							}
 							LOG(DEBUG,"strKey=%s",strKey.c_str());
 							printf("Line:%d,strKey=%s\n",__LINE__,strKey.c_str());
-
+							strMd5Key = strTelNo + "_" + strCertCode + "_" + strAction;
 	
 						}
 						break;
@@ -715,6 +715,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 							}
 							LOG(DEBUG,"strKey=%s",strKey.c_str());
 							printf("Line:%d,strKey=%s\n",__LINE__,strKey.c_str());
+							strMd5Key = strTelNo +"_" + strAction;
 
 							
 						}
@@ -765,6 +766,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 								LOG(DEBUG,"After  Md5 strSign=%s",strSign.c_str());
 								strKey = strParams+"accountID=test_customer&select=LT003&month=201509&mobile="+strTelNo+"&sign="+strSign;
 							}
+							strMd5Key = strTelNo +"_" + strAction;
 							LOG(DEBUG,"strKey=%s",strKey.c_str());
 							printf("Line:%d,strKey=%s\n",__LINE__,strKey.c_str());
 
@@ -785,7 +787,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 				{		
 
 						LOG(DEBUG,"ssContent=%s",ssContent.c_str());
-						ssContent=ssContent+"_"+strAction;
+						ssContent = strMd5Key ;
 						//#define __MD5__
 						#ifdef __MD5__
 						ssContent = BdxGetParamSign(ssContent,std::string(""));
@@ -966,12 +968,13 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 	#define __LOCAL_STORE__
 	#ifdef __LOCAL_STORE__
 
-		strTelNo=strTelNo+"_"+strAction;
+		//strTelNo=strTelNo+"_"+strAction;
+		strTelNo = strMd5Key;
 		#ifdef __MD5__
 		strTelNo = BdxGetParamSign(strTelNo,std::string(""));	
 		#endif
 		LOG(DEBUG,"Local Store strTelNo=%s",strTelNo.c_str());
-		printf("line %d,s strTelNo: %s,value %s\n",__LINE__,strTelNo.c_str());
+		printf("line %d,strTelNo: %s\n",__LINE__,strTelNo.c_str());
 		if(m_pDataRedis->UserPut(strTelNo,stResponseInfo.mResValue))
 		{	
 			
