@@ -1,7 +1,4 @@
 #!/bin/bash
-
-#!/bin/bash
-
 #替换redis信息
 
 sed -i 's/REDIS_SERVER_IP/'$REDIS_PORT_6379_TCP_ADDR'/g'  ./config/userQuery.conf
