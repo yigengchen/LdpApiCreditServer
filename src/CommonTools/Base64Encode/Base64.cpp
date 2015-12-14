@@ -109,7 +109,7 @@ std::string Encrypt(std::string oriString)
         //tempOriString.assign(oriString.rbegin(),oriString.rend());
  
         //printf("tempOriString=%s\n",tempOriString.c_str());
-        for(int i = 0;i<oriString.length();i++)
+        for(unsigned int i = 0;i<oriString.length();i++)
         {
                 numChar = oriString.at(i);
                 retEncrypt  = (int)numChar;
@@ -129,8 +129,7 @@ std::string Decrypt(std::string oriString)
         int numChar;
         int retEncrypt;
         cout<<"ranDomNum="<<ranDomNum<<::endl; 
-        printf("decodeString.length()-1=%d\n",decodeString.length()-1);
-        for(int i = 0;i<decodeString.length()-1;i++)
+        for(unsigned int i = 0;i<decodeString.length()-1;i++)
         {
                 numChar = (int)decodeString.at(i);
                 retEncrypt = numChar^(ranDomNum%32);

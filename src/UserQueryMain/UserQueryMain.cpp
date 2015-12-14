@@ -69,11 +69,12 @@ void CUserQueryMain::UserQueryMainCore()
 		
 	}
 	LOG(DEBUG, "start work threads ok.");
+	printf("Line:%d,start work threads ok.\n",__LINE__);
 
 #if 1
 	for(std::map<std::string,QUERYAPIINFO_S>::iterator itr = g_vecUrlAPIS.begin();itr!=g_vecUrlAPIS.end();itr++)
 	{
-		printf("%s \n",itr->first.c_str());
+		printf("Line:%d,%s \n",__LINE__,itr->first.c_str());
 	}
 
 #endif

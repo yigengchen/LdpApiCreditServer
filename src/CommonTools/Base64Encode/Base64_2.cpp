@@ -102,7 +102,7 @@ std::string Encrypt_2(std::string oriString)
         ranDomNum=20;
   
         reverse(oriString.begin(),oriString.end());
-        for(int i = 0;i<oriString.length();i++)
+        for(unsigned int i = 0;i<oriString.length();i++)
         {
                 numChar = oriString.at(i);
                 retEncrypt  = (int)numChar;
@@ -121,7 +121,7 @@ std::string Decrypt_2(std::string oriString)
         int ranDomNum =(int)decodeString.at(decodeString.length()-1);
         int numChar;
         int retEncrypt;
-        for(int i = 0;i<decodeString.length()-1;i++)
+        for(unsigned int i = 0;i<decodeString.length()-1;i++)
         {
                 numChar = (int)decodeString.at(i);
                 retEncrypt = numChar^(ranDomNum%32);

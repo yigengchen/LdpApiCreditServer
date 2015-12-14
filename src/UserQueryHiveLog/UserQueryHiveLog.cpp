@@ -44,7 +44,7 @@ void CUserQueryHiveLog::Core()
 				m_stHiveLog = CUserQueryWorkThreads::m_vecHiveLog[i].front();
 							  CUserQueryWorkThreads::m_vecHiveLog[i].pop();				
 				fprintf(m_pFile, "%04d-%02d-%02d %02d:%02d\t", timeinfo->tm_year + 1900, timeinfo->tm_mon + 1,timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min);
-				fprintf(m_pFile,"%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",m_stHiveLog.strLogKey.c_str(),m_stHiveLog.strLogKeyType.c_str(),m_stHiveLog.strLogValue.c_str(),m_stHiveLog.strCreateTime.c_str(),m_stHiveLog.strLastDataTime.c_str(),m_stHiveLog.strQueryTime.c_str(),m_stHiveLog.strDspName.c_str(),m_stHiveLog.strProvider.c_str(),m_stHiveLog.strProvince.c_str(),m_stHiveLog.strDayId.c_str(),m_stHiveLog.strHourId.c_str());
+				fprintf(m_pFile,"%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",m_stHiveLog.strAccessKeyId.c_str(),m_stHiveLog.strTelNo.c_str(),m_stHiveLog.strTimeStamp.c_str(),m_stHiveLog.strLiveTime.c_str(),m_stHiveLog.strSinature.c_str(),m_stHiveLog.strAuthId.c_str(),m_stHiveLog.strCustName.c_str(),m_stHiveLog.strAction.c_str(),m_stHiveLog.strReqParams.c_str(),m_stHiveLog.strValue.c_str(),m_stHiveLog.strQuerytime.c_str(),m_stHiveLog.strDayId.c_str(),m_stHiveLog.strHourId.c_str());
 			}		
 			//CUserQueryWorkThreads::m_vecHiveLog[i].clear();
 		}

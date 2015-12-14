@@ -108,7 +108,7 @@ void CUserQueryCount::BdxQueryCountOpenFile()
 void CUserQueryCount::BdxQueryCountWriteTitle()
 {
 	printf("BdxQueryCountWriteTitle.....\n");
-	std::string strTitle = std::string("DateTime\t") + "UserName\t" + "QueryReq\t" +"QueryRes\t" +"QueryEmptyRes\t"+ "QueryResTag\t\n";
+	std::string strTitle = std::string("DateTime\t") + "AccessKeyID\t" + "QueryReq\t" +"QueryRes\t" +"QueryEmptyRes\t"+ "QueryLimit\t\n";
 	fprintf(m_pFile, "%s", strTitle.c_str());
 	fflush(m_pFile);
 }

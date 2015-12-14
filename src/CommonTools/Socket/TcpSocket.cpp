@@ -495,9 +495,7 @@ int CTcpSocket::TcpSendEmail(char * smtpServer,int port,char* username,char * pa
  std::string strRcptTo;
  memset(buffer,0,sizeof(buffer));
  memset(recvBuff,0,sizeof(recvBuff));
- printf("from=%s,len %d\n",from,strlen(from));
  sprintf(buffer,"EHLO %s\n",from);//from为char数据。存储发送地址
- printf("buffer=%s,len=%d\n",buffer,strlen(buffer));
  if(!TcpWrite(buffer,strlen(buffer)))
  {
 	printf("send EHLO error\n");
@@ -544,7 +542,7 @@ int CTcpSocket::TcpSendEmail(char * smtpServer,int port,char* username,char * pa
 
 int index=0;
 char p[100][2048];
-char *buf = to;
+//char *buf = to;
 std::string strBuffer = to;
 std::string strAddress;
 printf("strBuffer=%s\n",strBuffer.c_str());
@@ -839,7 +837,7 @@ int CTcpSocket::TcpSslReadLen( void* buf, int nBytes)
 //end:
 
                 nleft=nleft-nread;
-				int sss=SSL_pending(ssl);
+				//int sss=SSL_pending(ssl);
         }while( nleft > 0 );
 
         return (nBytes-nleft);

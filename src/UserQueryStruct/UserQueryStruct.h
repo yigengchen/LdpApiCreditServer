@@ -123,29 +123,33 @@ typedef struct {
 
 typedef struct M_HIVELOG
 {
-std::string strLogKey;
-std::string strLogKeyType;
-std::string strLogValue;
-std::string strCreateTime;
-std::string strLastDataTime;
-std::string strQueryTime;
-std::string strDspName;
-std::string strProvider;
-std::string strProvince;
+std::string strAccessKeyId;
+std::string strTelNo;
+std::string strTimeStamp;
+std::string strLiveTime;
+std::string strSinature;
+std::string strAuthId;
+std::string strCustName;
+std::string strAction;
+std::string strReqParams;
+std::string strValue;
+std::string strQuerytime;
 std::string strDayId;
 std::string strHourId;
 
 void operator =(const M_HIVELOG &hive) 
 {
-	strLogKey		=	hive.strLogKey;
-	strLogKeyType	=	hive.strLogKeyType;
-	strLogValue		=	hive.strLogValue;
-	strCreateTime	=	hive.strCreateTime;
-	strLastDataTime	=	hive.strLastDataTime;
-	strQueryTime	=	hive.strQueryTime;
-	strDspName		=	hive.strDspName;  
-	strProvider		=	hive.strProvider; 
-	strProvince		=	hive.strProvince;
+	strAccessKeyId	=	hive.strAccessKeyId;
+	strTelNo		=	hive.strTelNo;
+	strTimeStamp	=	hive.strTimeStamp;
+	strLiveTime		=	hive.strLiveTime;
+	strSinature		=	hive.strSinature;
+	strAuthId		=	hive.strAuthId;
+	strCustName		=	hive.strCustName;  
+	strAction		=	hive.strAction; 
+	strReqParams	=	hive.strReqParams;
+	strValue		=	hive.strValue;
+	strQuerytime	=	hive.strQuerytime;
 	strDayId		=	hive.strDayId;
 	strHourId		=	hive.strHourId;
 

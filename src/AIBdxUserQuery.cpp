@@ -17,15 +17,16 @@ static void SignalCore (int a){
 
 }
 
+
 std::string strServerName;
 std::string strConfigFileName;
 
-
+std::map<int,std::string> mapIntStringOperator;
  
 int main(int argc, char *argv[]) {
 
-	system("ulimit -c unlimited");
-	system("ulimit -n 65535");
+	//system("ulimit -c unlimited");
+	//system("ulimit -n 65535");
 	
 	signal(SIGPIPE, SignalCore);
 	int iIndex = 0;
@@ -40,6 +41,20 @@ int main(int argc, char *argv[]) {
 		{"version",0,0,'v'},
 		{0,0,0,0},
 	};
+	std::string	ctc = "133,153,180,181,189,176";
+	std::string cmc = "134,135,136,137,138,139,147,150,151,152,157,158,159,182,183,184,187,188,178";
+	std::string cuc = "130,131,132,145,155,156,185,186,177";
+	mapIntStringOperator.insert(std::pair<int,std::string>(0,"unknown"));
+	mapIntStringOperator.insert(std::pair<int,std::string>(1,ctc));
+	mapIntStringOperator.insert(std::pair<int,std::string>(2,cmc));
+	mapIntStringOperator.insert(std::pair<int,std::string>(3,cuc));
+
+	//char *pathvar;
+	//pathvar = getenv("REDIS");
+	//printf("File:%s,Line:%d,pathvar=%s\n",__FILE__,__LINE__,pathvar);
+
+	
+	
 	try {
 		while( 1 ) {
 			iReturn = getopt_long(argc,argv,"dn:c:hv",stOptions,&iIndex);
