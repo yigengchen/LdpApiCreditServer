@@ -114,4 +114,18 @@ bool CDataAdapter::UserPut(string &uid,const string &rule) {
 	return data_[idx].SetValue(uid.c_str(),rule.c_str(),-1);
 }
 
+bool CDataAdapter::UserPutExpire(string &uid,const string &rule,int32_t expiration) {
+	//uint64_t postkey = md5_sum((uid.c_str()),uid.length());
+	m_clMd5.Md5Init();    
+	m_clMd5.Md5Update((unsigned char *)uid.c_str(),uid.length());
+	unsigned char  pszParamSign[16];    
+	m_clMd5.Md5Final(pszParamSign);
+	unsigned long int postkey = *(unsigned long int*)pszParamSign;
+
+	
+	uint32_t idx = postkey % serv_count_;
+	MutexLock lock(&lock_[idx]);
+	return data_[idx].SetValue(uid.c_str(),rule.c_str(),expiration);
+}
+
 

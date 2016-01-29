@@ -571,11 +571,11 @@ void CUserQueryUpdate::Core()
 								printf("%d ",itr->second.mIntGoodsTimes);
 								printf("%s ",itr->second.mGoodsFields.c_str());
 								
-								LOG(DEBUG,"itr->first.c_str()=%s",itr->first.c_str());
-								LOG(DEBUG,"itr->second.mResToken.c_str()=%s",itr->second.mResToken.c_str());
-								LOG(DEBUG,"itr->second.mIntQueryTimes=%d",itr->second.mIntQueryTimes);
-								LOG(DEBUG,"itr->second.mIntGoodsTimes=%d",itr->second.mIntGoodsTimes);
-								LOG(DEBUG,"itr->second.mGoodsFields.c_str()=%s",itr->second.mGoodsFields.c_str());
+								//LOG(DEBUG,"itr->first.c_str()=%s",itr->first.c_str());
+								//LOG(DEBUG,"itr->second.mResToken.c_str()=%s",itr->second.mResToken.c_str());
+								//LOG(DEBUG,"itr->second.mIntQueryTimes=%d",itr->second.mIntQueryTimes);
+								//LOG(DEBUG,"itr->second.mIntGoodsTimes=%d",itr->second.mIntGoodsTimes);
+								//LOG(DEBUG,"itr->second.mGoodsFields.c_str()=%s",itr->second.mGoodsFields.c_str());
 								for(itr2=itr->second.mVecFields.begin();itr2!=itr->second.mVecFields.end();itr2++)
 								{
 									printf("%s ",(*itr2).c_str());
@@ -593,11 +593,11 @@ void CUserQueryUpdate::Core()
 								printf("%d ",itr->second.mIntQueryTimes);
 								printf("%d ",itr->second.mIntGoodsTimes);
 								printf("%s ",itr->second.mGoodsFields.c_str());
-								LOG(DEBUG,"itr->first.c_str()=%s",itr->first.c_str());
-								LOG(DEBUG,"itr->second.mResToken.c_str()=%s",itr->second.mResToken.c_str());
-								LOG(DEBUG,"itr->second.mIntQueryTimes=%d",itr->second.mIntQueryTimes);
-								LOG(DEBUG,"itr->second.mIntGoodsTimes=%d",itr->second.mIntGoodsTimes);
-								LOG(DEBUG,"itr->second.mGoodsFields.c_str()=%s",itr->second.mGoodsFields.c_str());
+								//LOG(DEBUG,"itr->first.c_str()=%s",itr->first.c_str());
+								//LOG(DEBUG,"itr->second.mResToken.c_str()=%s",itr->second.mResToken.c_str());
+								//LOG(DEBUG,"itr->second.mIntQueryTimes=%d",itr->second.mIntQueryTimes);
+								//LOG(DEBUG,"itr->second.mIntGoodsTimes=%d",itr->second.mIntGoodsTimes);
+								//LOG(DEBUG,"itr->second.mGoodsFields.c_str()=%s",itr->second.mGoodsFields.c_str());
 								for(itr2=itr->second.mVecFields.begin();itr2!=itr->second.mVecFields.end();itr2++)
 								{
 									printf("%s ",(*itr2).c_str());

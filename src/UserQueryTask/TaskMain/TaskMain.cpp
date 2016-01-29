@@ -43,7 +43,10 @@ static const char http200ok[] = "HTTP/1.1 200 OK\r\nServer: Bdx DMP/0.1.0\r\nCac
 //static const char http200ok[] = "";
 static const char httpReq[]="GET %s HTTP/1.1\r\nHost: %s\r\nAccept-Encoding: identity\r\n\r\n";
 
-#define __EXPIRE__
+
+#define __NOLOCAL__
+#define __MD5__
+#define __LOCAL_STORE__
 
 
 CTaskMain::CTaskMain(CTcpSocket* pclSock):CUserQueryTask(pclSock)
@@ -69,7 +72,7 @@ int CTaskMain::BdxRunTask(BDXREQUEST_S& stRequestInfo, BDXRESPONSE_S& stResponse
 	string keyReq = "Req_"+BdxTaskMainGetTime();
 	string keyEmptyRes = "EmptyRes_"+BdxTaskMainGetTime();
 	string strErrorMsg,errValue;
-	string retKey,retKeyType,retUser;
+	string retKey,retKeyType,retUser,retAccessKeyID;
     HIVELOCALLOG_S stHiveEmptyLog;
 	int iRes = 0;
 	if(!m_pclSock) {
@@ -77,7 +80,7 @@ int CTaskMain::BdxRunTask(BDXREQUEST_S& stRequestInfo, BDXRESPONSE_S& stResponse
 		return LINKERROR;
 	}
 
-	iRes = 	BdxGetHttpPacket(stRequestInfo,stResponseInfo,retKey,retKeyType,retUser,strErrorMsg);	
+	iRes = 	BdxGetHttpPacket(stRequestInfo,stResponseInfo,retAccessKeyID,retKey,retKeyType,retUser,strErrorMsg);	
 	LOG(DEBUG,"BdxGetHttpPacket iRes=%d",iRes);
 	//printf("strErrorMsg=%s\n",strErrorMsg.c_str());
 	if(iRes == SUCCESS )//&& !stRequestInfo.m_strUserID.empty() /*&& m_bSend*/) 
@@ -86,41 +89,10 @@ int CTaskMain::BdxRunTask(BDXREQUEST_S& stRequestInfo, BDXRESPONSE_S& stResponse
 	}
 	else
 	{
-				
-		if ( iRes == OTHERERROR)
-		{
 
+		if( iRes != LINKERROR )
+		{
 			errValue = "{\r\n\"code\":\""+strErrorMsg+"\",\r\n\"msg\":\"authentication failure\",\r\n\"data\":\"\"\r\n}";		
-		
-			if(CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo.find(stResponseInfo.ssUserName)	
-				!=	CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo.end())
-			{
-
-				m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyEmptyRes); 
-				CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssUserName].m_ullEmptyResNum++;
-
-			}
-			
-			printf("ssUserCountKeyEmptyRes=%s\n",stResponseInfo.ssUserCountKeyEmptyRes.c_str());
-			if( stResponseInfo.queryType==2 )
-			{
-				m_pGoodsRedis->UserIncr(stResponseInfo.ssUserCountKeyEmptyRes);
-			}
-			else
-			{
-				m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyEmptyRes);
-			}
-			
-			//return BdxSendEmpyRespones(stResponseInfo);
-		}
-		else if ( iRes == EXCEEDLIMIT)
-		{
-			CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssUserName].m_ullEmptyResNum++;
-			m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyEmptyRes);
-		}
-		else
-		{
-
 			stHiveEmptyLog.strValue=strErrorMsg;
 			if(retKey.empty())
 			{
@@ -132,42 +104,112 @@ int CTaskMain::BdxRunTask(BDXREQUEST_S& stRequestInfo, BDXRESPONSE_S& stResponse
 			}
 			if(retKeyType.empty())
 			{
-				stHiveEmptyLog.strValue="Empty";
+				stHiveEmptyLog.strAction="Empty";
 			}
 			else
 			{	
-				stHiveEmptyLog.strValue=retKeyType;
+				stHiveEmptyLog.strAction=retKeyType;
 			}
-
+			if(retUser.empty())
+			{
+				stHiveEmptyLog.strReqParams="Empty";
+			}
+			else
+			{	
+				stHiveEmptyLog.strReqParams=retUser;
+			}
+			if(retAccessKeyID.empty())
+			{
+				stHiveEmptyLog.strAccessKeyId="Empty";
+			}
+			else
+			{	
+				stHiveEmptyLog.strAccessKeyId=retAccessKeyID;
+			}
+			
+			if(stResponseInfo.mResValue.empty())
+			{
+				stHiveEmptyLog.strValue=strErrorMsg;
+			}
+			else
+			{
+				stHiveEmptyLog.strValue=stResponseInfo.mResValue;
+			}
 			stHiveEmptyLog.strAuthId="Empty";
 			stHiveEmptyLog.strCustName="Empty";
 			stHiveEmptyLog.strQuerytime=BdxTaskMainGetFullTime();
-			stHiveEmptyLog.strAccessKeyId=retUser;
-			stHiveEmptyLog.strAction="Empty";
+			
+			stHiveEmptyLog.iSource = -1;//unknow
 			stHiveEmptyLog.strSinature="Empty";
 			stHiveEmptyLog.strDayId=BdxTaskMainGetDate();
-			stHiveEmptyLog.strHourId=stHiveEmptyLog.strQuerytime.substr(8,2);	
-			CUserQueryWorkThreads::m_vecHiveLog[m_uiThreadId].push(stHiveEmptyLog);	
+			stHiveEmptyLog.strHourId=stHiveEmptyLog.strQuerytime.substr(8,2);
+			if( stHiveEmptyLog.strTelNo!="Empty" )
+			{
+				CUserQueryWorkThreads::m_vecHiveLog[m_uiThreadId].push(stHiveEmptyLog);
+			}
 			
-			errValue = "{\r\n\"code\":\""+strErrorMsg+"\",\r\n\"msg\":\"authentication failure\",\r\n\"data\":\"\"\r\n}";		
-			CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[""].m_ullReqNum++;
-			CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[""].m_ullEmptyResNum++;
-			m_pDataRedis->UserIncr(keyReq);
-			m_pDataRedis->UserIncr(keyEmptyRes);
-		}
 			
-			return BdxSendEmpyRespones(errValue);
+			//if ( iRes == OTHERERROR)
+			//{		
+				if(CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo.find(stResponseInfo.ssUserName)	
+					!=	CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo.end())
+				{
+
+					m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyEmptyRes); 
+					CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssUserName].m_ullEmptyResNum++;
+
+				}
+				//if(CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo.find(stResponseInfo.ssOperatorName)	
+				//	!=	CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo.end())
+
+				if( stResponseInfo.ssOperatorName !="" )
+				{
+					CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssOperatorName].m_ullEmptyResNum++;
+				}
+				
+			//	printf("ssUserCountKeyEmptyRes=%s\n",stResponseInfo.ssUserCountKeyEmptyRes.c_str());
+				#if 0
+				if( stResponseInfo.queryType==2 )
+				{
+					m_pGoodsRedis->UserIncr(stResponseInfo.ssUserCountKeyEmptyRes);
+				}
+				else
+				{
+					m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyEmptyRes);
+				}
+				#endif
+				
+				//return BdxSendEmpyRespones(stResponseInfo);
+			//}
+			//if ( iRes == EXCEEDLIMIT)
+			//{
+			//	CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssUserName].m_ullEmptyResNum++;
+			//	m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyEmptyRes);
+			//}
+	/*
+			else
+			{		
+				CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[""].m_ullReqNum++;
+				CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[""].m_ullEmptyResNum++;
+				m_pDataRedis->UserIncr(keyReq);
+				m_pDataRedis->UserIncr(keyEmptyRes);
+			}
+
+	*/			
+				return BdxSendEmpyRespones(errValue);
+		 }
 
 	}
 	return iRes;
 }
 
 
-int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stResponseInfo,std::string &retKey,std::string &retKeyType,std::string &retUser,std::string &errorMsg)
+int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stResponseInfo,std::string &retAccessKeyID,std::string &retKey,std::string &retKeyType,std::string &retUser,std::string &errorMsg)
 {
 
 	int iRes = 0;//,istrRemoteValueLength=0;
-	//int iQueryCategory = 1,isError=0;
+	//int iQueryCategory = 0,isError=0;
+	int iQueryCategory = 0;
 	m_httpType = 0;
 	//bool bUpdateDatabase = false;
 	//bool bQueryUser = false;
@@ -177,12 +219,14 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 	//int iQueryInfo=0;//
 	//bool bTelVerify = false;
 	int iNoDataFlag = 0,strSource;//,isQueryAction = 0,
+	char chSource[30];
+	
 	std::string strPrivateKey="8c42f63e-3611-11e5-8e67-dasdas448c8e";
 	std::string	strMobile,strSign,strParams,strSelect,
-	ssUser,ssValue,ssKey,ssmoidValue,strUser,filterDate,strToken,strKey,strMd5Key,strKeyType,strKeyFilter,tempstrKeyFilter,strShopId,strGoodsId,strProvince,strOperator,strMoId;
+	ssUser,ssValue,ssKey,ssmoidValue,strUser,filterDate,strToken,strAccessKeyID,strKey,strMd5Key,strKeyType,strKeyFilter,tempstrKeyFilter,strShopId,strGoodsId,strProvince,strOperator,strMoId;
 	std::string strProvinceReq,strProvinceRes,strProvinceEmptyRes,strProvinceResTag,strOperatorName;
 	std::string 
-	strTimeStamp,strLiveTime,strAccessKeyId,strAccessPrivatekey,strSinature,strTelNo,strTelNoTemp,strMonth,strCertType,strCertCode,strUserName,strAuthId,strCustName,strUserIdentity,strUserTelVerity,strHost,strRemoteValue;
+	strTimeStamp,strLiveTime,strAccessKeyId,strAccessPrivatekey,strSinature,strTelNo,strMonth,strTelNoTemp,strCertType,strCertCode,strUserName,strAuthId,strCustName,strUserIdentity,strUserTelVerity,strHost,strRemoteValue;
 	std::map<std::string,std::string> map_UserValueKey;
 	std::map<std::string,std::string>::iterator iter2;
 	std::map<std::string,BDXPERMISSSION_S>::iterator iter;
@@ -223,11 +267,12 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 	iRes = m_pclSock->TcpRead(m_pszAdxBuf, _8KBLEN);
 
   	LOG(DEBUG,"Requrest= %s\n",m_pszAdxBuf);  
-	printf("Requrest= %s\n",m_pszAdxBuf);  
+	printf("ThreadID: %d,Line%d,Requrest= %s\n",m_uiThreadId,__LINE__,m_pszAdxBuf);  
 	if(iRes <= (int)http.length()) 
 	{		
 		LOG(DEBUG, "[thread: %d]Read Socket Error [%d].", m_uiThreadId, iRes);
-		errorMsg="1100";
+		printf("[thread: %d]Read Socket Error [%d].\n", m_uiThreadId, iRes);
+		errorMsg="1101";
 		return LINKERROR;
 	}
 
@@ -309,7 +354,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 				}
 				else
 				{
-					errorMsg ="1100"; //param missing or error
+					errorMsg ="1102"; //param missing telno
 					LOG(DEBUG,"errorMsg=%s",errorMsg.c_str());
 					printf("line %d,s Error: %s\n",__LINE__,errorMsg.c_str());
 					return ERRORPARAM;
@@ -387,7 +432,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 				}
 				else
 				{
-					errorMsg ="1100"; //request info is error  
+					errorMsg ="1103"; //request action  is error  
 					LOG(DEBUG,"errorMsg=%s",errorMsg.c_str());
 					return ERRORPARAM;
 				}
@@ -401,8 +446,12 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 					strSinature = map_UserValueKey.find(KEY_SIGNATURE)->second;
 					strTelNo = map_UserValueKey.find(KEY_TEL_NO)->second;
 
+					retKey = strTelNo;
+					retKeyType = strAction;
+					retUser=strReqParams;
+					retAccessKeyID= strAccessKeyId;
 
-					stResponseInfo.ssUserName=strAccessKeyId;//+"_"+strSinature;
+					stResponseInfo.ssUserName=strAccessKeyId+"_"+strAction;//+"_"+strSinature;
 					//stResponseInfo.ssUserCountKeyUserLimitReq = "Limit_"+BdxTaskMainGetDate()+"_"+strAccessKeyId+"_"+strAction;
 					stResponseInfo.ssUserCountKeyUserLimitReq = "Limit_"+strAccessKeyId;
 					stResponseInfo.ssOperatorNameKeyLimit = "Limit_"+BdxTaskMainGetTime()+"_"+strAccessKeyId;//+"_"+strAction;
@@ -416,23 +465,29 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 					
 					m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyReq); //req++
 					CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssUserName].m_ullReqNum++;
+
+					m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyUserLimitReq);
+					CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssUserName].m_ullResTagNum++;
+
+					printf("Line:%d,===========",__LINE__);
 					//CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssUserName].m_ullTotalReqNum++;
-					if(m_pDataRedis->UserGet(stResponseInfo.ssUserCountKeyUserLimitReq,ssmoidValue)&&(g_mapUserInfo.find(map_UserValueKey.find(KEY_ACCESS_KEY_ID)->second)->second.mIntGoodsTimes>0))
+					if(m_pDataRedis->UserGet(stResponseInfo.ssUserCountKeyUserLimitReq,ssmoidValue)&&(g_mapUserInfo.find(map_UserValueKey.find(KEY_ACCESS_KEY_ID)->second)->second.mIntQueryTimes>=0))
 				    {	
-						if(atoi(ssmoidValue.c_str())>= g_mapUserInfo.find(KEY_ACCESS_KEY_ID)->second.mIntGoodsTimes)
+				    	printf("g_mapUserInfo.find(KEY_ACCESS_KEY_ID)->second.mIntQueryTimes=%d\n",g_mapUserInfo.find(strAccessKeyId)->second.mIntQueryTimes);
+				    	LOG(DEBUG,"g_mapUserInfo.find(KEY_ACCESS_KEY_ID)->second.mIntQueryTimes=%d",g_mapUserInfo.find(strAccessKeyId)->second.mIntQueryTimes);
+						if(atoi(ssmoidValue.c_str())> g_mapUserInfo.find(strAccessKeyId)->second.mIntQueryTimes)
 						{
-							errorMsg = "5000";//user query times limit
+							errorMsg = "4000";//user query times limit
 							LOG(DEBUG,"errorMsg=%s",errorMsg.c_str());
-							return EXCEEDLIMIT;
+							return OTHERERROR;
 						}
-						else
-						{
-							m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyUserLimitReq);
-							CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssUserName].m_ullResTagNum++;
-							
-						}
+
 					}
 
+		
+					//m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyUserLimitReq);
+					//CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssUserName].m_ullResTagNum++;
+					
 					iter = g_mapUserInfo.find(strAccessKeyId);
 					if(iter!=g_mapUserInfo.end())
 					{	
@@ -447,7 +502,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 							}
 							else
 							{								
-								errorMsg = "1100";  // request KEY_TEL_NO is missing  
+								errorMsg = "1102";  // request KEY_TEL_NO is missing  
 								LOG(DEBUG,"errorMsg=%s",errorMsg.c_str());
 								printf("line %d,s Error: %s\n",__LINE__,errorMsg.c_str());
 								return OTHERERROR;
@@ -482,7 +537,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 						return OTHERERROR;
 					}
 					std::string strMD5Signature;
-					//transform(strSinature.begin(), strSinature.end(), strSinature.begin(), toupper)
+					//transform(strSinature.begin(), strSinature.end(), strSinature.begin(),::toupper)
 					strMD5Signature = strTimeStamp + strAccessKeyId;
 					strMD5Signature = BdxGetParamSign(strMD5Signature,strAccessPrivatekey);
 					LOG(DEBUG,"strMD5Signature=%s",strMD5Signature.c_str());
@@ -570,6 +625,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 							{
 								strMobile =	strTelNo;
 								std:: string tempStr="accountIDtest_customer";
+								strUserName=url_decode(strUserName.c_str());
 								strSign= tempStr+"cardID"+ strCertCode+"mobile"+strTelNo+"name"+strUserName+"selectRZ011";
 								LOG(DEBUG,"Before Md5 strSign=%s",strSign.c_str());
 								strSign = BdxGetParamSign(strSign,strPrivateKey);
@@ -705,13 +761,16 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 							if(iOperator == 3 )
 							{
 								strMobile =	strTelNo;
-								std:: string tempStr="accountIDtest_customer";
-								strSign= tempStr+"mobile"+ strTelNo+"month201509selectLT002";
+								std:: string tempStr="accountIDtest_customermobile";
+								//strSign= tempStr+"mobile"+ strTelNo+"month201509selectLT002";
+								strMonth=BdxTaskMainGetLastTwoMonth();
+								printf("strMonth=%s\n",strMonth.c_str());
+								strSign= tempStr+ strMobile+"month"+ strMonth+"selectLT002";
+								printf("strSign=%s\n",strSign.c_str());
 								LOG(DEBUG,"Before Md5 strSign=%s",strSign.c_str());
 								strSign = BdxGetParamSign(strSign,strPrivateKey);
 								LOG(DEBUG,"After  Md5 strSign=%s",strSign.c_str());
-								strKey = 
-								strParams+"accountID=test_customer&select=LT002&month=201509&mobile="+strTelNo+"&sign="+strSign;
+								strKey = strParams+"accountID=test_customer&select=LT002&month="+strMonth+"&mobile="+strTelNo+"&sign="+strSign;
 							}
 							LOG(DEBUG,"strKey=%s",strKey.c_str());
 							printf("Line:%d,strKey=%s\n",__LINE__,strKey.c_str());
@@ -743,13 +802,16 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 							{
 								strMobile =	strTelNo;
 								string tempStr="accountIDtest_customermobile";
-								strSign= tempStr+ strMobile+"month201509selectZ0003";
+								strMonth=BdxTaskMainGetLastTwoMonth();
+								printf("strMonth=%s\n",strMonth.c_str());
+								strSign= tempStr+ strMobile+"month"+ strMonth+"selectZ0003";
 								LOG(DEBUG,"Before Md5 strSign=%s",strSign.c_str());
 								printf("strSign=%s\n",strSign.c_str());
 								strSign = BdxGetParamSign(strSign,strPrivateKey);
 								LOG(DEBUG,"After Md5 strSign=%s",strSign.c_str());
 								printf("Line:%d,strSign=%s\n",__LINE__,strSign.c_str());
-								strKey = strParams+"accountID=test_customer&select=Z0003&mobile="+strMobile+"&month=201509&sign="+strSign;
+								strKey = 
+								strParams+"accountID=test_customer&select=Z0003&mobile="+strMobile+"&month="+strMonth+"&sign="+strSign;
 
 							}
 							if( iOperator == 2 )
@@ -759,16 +821,20 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 							if( iOperator == 3 )
 							{
 								strMobile =	strTelNo;
+								strMonth=BdxTaskMainGetLastTwoMonth();
+								printf("strMonth=%s\n",strMonth.c_str());
 								std:: string tempStr="accountIDtest_customer";
-								strSign= tempStr+"mobile"+ strTelNo+"month201509selectLT003";
+								strSign= tempStr+"mobile"+ strTelNo+"month"+strMonth +"selectLT003";
 								LOG(DEBUG,"Before Md5 strSign=%s",strSign.c_str());
 								strSign = BdxGetParamSign(strSign,strPrivateKey);
 								LOG(DEBUG,"After  Md5 strSign=%s",strSign.c_str());
-								strKey = strParams+"accountID=test_customer&select=LT003&month=201509&mobile="+strTelNo+"&sign="+strSign;
+								strKey = strParams+"accountID=test_customer&select=LT003&month="+strMonth+"&mobile="+strTelNo+"&sign="+strSign;
 							}
 							strMd5Key = strTelNo +"_" + strAction;
 							LOG(DEBUG,"strKey=%s",strKey.c_str());
+							LOG(DEBUG,"strMd5Key=%s",strMd5Key.c_str());
 							printf("Line:%d,strKey=%s\n",__LINE__,strKey.c_str());
+							printf("Line:%d,strMd5Key=%s\n",__LINE__,strMd5Key.c_str());
 
 						}
 						break;
@@ -782,13 +848,14 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 
 				
 				ssContent = ssContent.substr(0,ipos);
-				//#define __NOLOCAL__
+
 				#ifdef __NOLOCAL__
 				{		
 
 						LOG(DEBUG,"ssContent=%s",ssContent.c_str());
 						ssContent = strMd5Key ;
-						//#define __MD5__
+						LOG(DEBUG,"ssContent=%s",ssContent.c_str());
+						
 						#ifdef __MD5__
 						ssContent = BdxGetParamSign(ssContent,std::string(""));
 						#endif
@@ -799,6 +866,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 							LOG(DEBUG,"ssmoidValue=%s",ssmoidValue.c_str());
 							printf("ssmoidValue=%s\n",ssmoidValue.c_str());
 							stResponseInfo.mResValue = ssmoidValue;
+							iQueryCategory = 0;
 							m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyRes);
 							CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssUserName].m_ullResNum++;
 							LOG(DEBUG,"stResponseInfo.mResValue=%s",stResponseInfo.mResValue.c_str());
@@ -809,13 +877,16 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 						{
 							//when no data in local redis,then query remote api
 							iNoDataFlag = 1;
+							memset(chSource, 0,30);
+							sprintf(chSource,"%d",strSource);
+							stResponseInfo.ssOperatorName=strAccessKeyId + "_Remote_" + string(chSource) + "_" + strAction;//+"_"+strSinature;
 							//return ERRORNODATA;
 						}
-						mResValueLocal = stResponseInfo.mResValue;
+						
 						
 				 }
 				#endif //__NOLOCAL__
-			iNoDataFlag = 1;
+			
 			printf("Line:%d,iNoDataFlag=%d\n",__LINE__,iNoDataFlag);
 			LOG(DEBUG,"iNoDataFlag=%d",iNoDataFlag); 
 
@@ -843,7 +914,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 						remoteSocket=new CTcpSocket(remotePort,remoteIp);
 						if(remoteSocket->TcpConnect()!=0)
 						{
-							errorMsg = "5000";
+							errorMsg = "2001";
 							LOG(DEBUG,"errorMsg=%s",errorMsg.c_str());
 							return OTHERERROR;
 						}
@@ -875,10 +946,12 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 					//sprintf(m_httpReq,"GET %s HTTP/1.1\r\nAccept: */*\r\nAccept-Language: zh-cn\r\ntoken: %s\r\nhost: %s\r\n\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: %d\r\nConnection:keep-alive\r\n",strUserIdentity.c_str(),strToken.c_str(),strHost.c_str(),istrRemoteValueLength,strRemoteValue.c_str());
 					if(strSource==1001)
 					{
+						iQueryCategory = 1; //huayuan
 						sprintf(m_httpReq,"GET %s HTTP/1.1\r\nHost: %s\r\nAccept-Encoding: identity\r\n\r\n",strKey.c_str(),string("api.shuzunbao.com").c_str());
 					}
-					if(strSource==1002)
+					if(strSource==1002) 
 					{
+						iQueryCategory = 2;//zhongyi
 						sprintf(m_httpReq,"GET %s HTTP/1.1\r\nHost: %s\r\nAccept-Encoding: identity\r\n\r\n",strKey.c_str(),string("61.151.247.36").c_str());
 					}
 					
@@ -887,27 +960,30 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 					printf("Line:%d,remoteSocket->TcpGetSockfd()=%d\n",__LINE__,remoteSocket->TcpGetSockfd());
 					if(remoteSocket->TcpWrite(m_httpReq,strlen(m_httpReq))!=0)
 					{
+							CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssOperatorName].m_ullReqNum++;
 							memset(remoteBuffer,0,_8KBLEN);
-							remoteSocket->TcpReadAll(remoteBuffer,_8KBLEN);
+							//remoteSocket->TcpReadAll(remoteBuffer,_8KBLEN);
+							remoteSocket->TcpRead(remoteBuffer,_8KBLEN);
+							
 							printf("Line:%d,remoteBuffer=%s\n",__LINE__,remoteBuffer);
 							LOG(DEBUG,"remoteBuffer=%s",remoteBuffer);
 							if( strlen(remoteBuffer) > 0 )
 							{
 								stResponseInfo.mResValue = std::string(remoteBuffer);
 								mResValueRemote = stResponseInfo.mResValue;
-								m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyRes); 
-								CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssUserName].m_ullReqNum++;
 								remoteSocket->TcpClose();
 							}
 							else
 							{
 								remoteSocket->TcpClose();
+								errorMsg = "2003";
 								return OTHERERROR;
 							}
 					}
 					else
 					{
 						remoteSocket->TcpClose();
+						errorMsg = "2002";
 						printf("Line:%d,remoteSocket->TcpGetSockfd()=%d\n",__LINE__,remoteSocket->TcpGetSockfd());
 						return OTHERERROR;
 					}
@@ -924,7 +1000,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 	}
 	else
 	{
-		errorMsg = "1100";	// request type  is error ( GET )
+		errorMsg = "1101";	// request type  is error ( GET )
 		LOG(DEBUG,"errorMsg=%s",errorMsg.c_str());
 		return OTHERERROR;
 	}
@@ -962,32 +1038,16 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 			return OTHERERROR;
 		}
 		
-		stResponseInfo.mResValue = stResponseInfo.mResValue.substr(ipos1,ipos2-ipos1+1);
-		
-
-	#define __LOCAL_STORE__
-	#ifdef __LOCAL_STORE__
-
-		//strTelNo=strTelNo+"_"+strAction;
-		strTelNo = strMd5Key;
-		#ifdef __MD5__
-		strTelNo = BdxGetParamSign(strTelNo,std::string(""));	
-		#endif
-		LOG(DEBUG,"Local Store strTelNo=%s",strTelNo.c_str());
-		printf("line %d,strTelNo: %s\n",__LINE__,strTelNo.c_str());
-		if(m_pDataRedis->UserPut(strTelNo,stResponseInfo.mResValue))
-		{	
-			
-			 	LOG(ERROR, "[thread: %d]Set HotKey Error.", m_uiThreadId);								
-		}
-	#endif
+		stResponseInfo.mResValue = stResponseInfo.mResValue.substr(ipos1,ipos2-ipos1+1);	
 		
 	}
-	
-	HIVELOCALLOG_S stHiveLog;
 
+	mResValueLocal = stResponseInfo.mResValue;
+
+	HIVELOCALLOG_S stHiveLog;
 	//stHiveLog.logtime=logtime;
 	stHiveLog.strAccessKeyId=strAccessKeyId;
+	stHiveLog.iSource = iQueryCategory;
 	stHiveLog.strTelNo=strTelNoTemp;
 	stHiveLog.strTimeStamp=strTimeStamp;
 	stHiveLog.strLiveTime=strLiveTime;
@@ -995,11 +1055,13 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 	stHiveLog.strAuthId=strAuthId;
 	stHiveLog.strCustName=strCustName;
 	stHiveLog.strAction=strAction;
+	stHiveLog.strMd5Key=strMd5Key;
 	stHiveLog.strReqParams=strReqParams;
 	stHiveLog.strValue=stResponseInfo.mResValue;
 	stHiveLog.strQuerytime=BdxTaskMainGetFullTime();
 	stHiveLog.strDayId=BdxTaskMainGetDate();
 	stHiveLog.strHourId=stHiveLog.strQuerytime.substr(8,2);	
+	CUserQueryWorkThreads::m_vecHiveLog[m_uiThreadId].push(stHiveLog);
 
 	//stResponseInfo.mResValue="{\"resCode\":\"0000\",\"resMsg\":\"请求成功\",\"sign\":\"DEA501DC38718AE61EF0033684AC1759\",\"data\":[{\"resCode\":\"0000\",\"resMsg\":\"请求成功\",\"quotaInfo\":{\"quotaValuePercent\":0,\"quotaID\":\"Z0003\",\"quotaName\":\"手机号码在网时长\",\"quotaType\":1,\"quotaValue\":\"[36,+)\",\"quotaPrice\":100,\"quotaValueType\":2}}]}";
 	LOG(DEBUG,"stResponseInfo.mResValue=%s",stResponseInfo.mResValue.c_str());
@@ -1017,9 +1079,31 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 
 				if(jValue[string("resCode").c_str()].asString()!="0000")
 				{
-					stResponseInfo.mResValue = "{\r\n\"code\":\"1200\",\r\n\"msg\":\"authentication failure\",\r\n\"data\":\"\"\r\n}";
-					return SUCCESS;
+					errorMsg = "5000";
+					return OTHERERROR;
 				}
+
+
+				#ifdef __LOCAL_STORE__
+				  if( iNoDataFlag == 1 )
+				  {
+					m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyRes); 
+					CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssUserName].m_ullResNum++;
+					CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssOperatorName].m_ullResNum++;
+					//strTelNo=strTelNo+"_"+strAction;
+					strTelNo = strMd5Key;
+					#ifdef __MD5__
+					strTelNo = BdxGetParamSign(strTelNo,std::string(""));	
+					#endif
+					LOG(DEBUG,"Local Store strTelNo=%s",strTelNo.c_str());
+					printf("line %d,strTelNo: %s\n",__LINE__,strTelNo.c_str());
+					//if(!m_pDataRedis->UserPut(strTelNo,mResValueLocal))
+					if(!m_pDataRedis->UserPutExpire(strTelNo,mResValueLocal,60*86400))	
+					{		
+						 	LOG(ERROR, "[thread: %d]Set HotKey Error.", m_uiThreadId);								
+					}
+				   }
+				#endif
 
 				if(!jReader->parse(jValue["data"].toStyledString(), jValue))
 				{ 
@@ -1053,6 +1137,10 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 							{
 								strRet = "00";
 							}
+							if(jTemp["quotaValue"].asString().find("-1,-1,-1")!=std::string::npos)
+							{
+								strRet = "02";
+							}
 							sprintf(m_httpResValueE20003,"{\r\n\"code\":\"1000\",\r\n\"msg\":\"success\",\r\n\"data\":{\r\n\"action\":\"%s\",\r\n\"checkResult\":\"%s\"\r\n}\r\n}",strAction.c_str(),strRet.c_str());
 							stResponseInfo.mResValue=string(m_httpResValueE20003);
 							printf("stResponseInfo.mResValue=%s\n",stResponseInfo.mResValue.c_str());
@@ -1068,7 +1156,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 							{
 								strRet = "00";
 							}
-							if((jTemp["quotaValue"].asString().find("1,-1")!=std::string::npos)||(jTemp["quotaValue"].asString().find("1,-1")!=std::string::npos))
+							if((jTemp["quotaValue"].asString().find("1,-1")!=std::string::npos)||(jTemp["quotaValue"].asString().find("-1,-1")!=std::string::npos))
 							{
 								strRet = "02";
 							}
@@ -1096,7 +1184,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 							{
 								inUseTime = -2;
 							}
-							if(jTemp["quotaValue"].asString()=="[36,+)") 
+							if(jTemp["quotaValue"].asString()=="[36+)") 
 							{
 								inUseTime = 5;
 							}
@@ -1156,9 +1244,81 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 				}
 				else
 				{
+
+					#ifdef __LOCAL_STORE__
+					  if( iNoDataFlag == 1 )
+					  {
+						m_pDataRedis->UserIncr(stResponseInfo.ssUserCountKeyRes); 
+						CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssUserName].m_ullResNum++;
+						CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stResponseInfo.ssOperatorName].m_ullResNum++;
+						//strTelNo=strTelNo+"_"+strAction;
+						strTelNo = strMd5Key;
+						#ifdef __MD5__
+						strTelNo = BdxGetParamSign(strTelNo,std::string(""));	
+						#endif
+						LOG(DEBUG,"Local Store strTelNo=%s",strTelNo.c_str());
+						printf("line %d,strTelNo: %s\n",__LINE__,strTelNo.c_str());
+						//if(!m_pDataRedis->UserPut(strTelNo,mResValueLocal))
+						if(!m_pDataRedis->UserPutExpire(strTelNo,mResValueLocal,60*86400))	
+						{	
+							
+							 	LOG(ERROR, "[thread: %d]Set HotKey Error.", m_uiThreadId);								
+						}
+					   }
+					#endif
 					switch(iIdentity)
 					{
-						case 20003://userIdentity
+						case 10001:
+						case 10002:
+						case 10003://userIdentity
+							{	
+								std::string strRet = "01";
+								printf("Line:%d,jTemp[\"quotaValue\"]=%d\n",__LINE__,atoi(jTemp["quotaValue"].asString().c_str()));
+								if(jValue["result"].asString().find("1")!=std::string::npos)
+								{
+									strRet = "00";
+								}
+								if(jValue["result"].asString().find("2")!=std::string::npos)
+								{
+									strRet = "02";
+								}
+								sprintf(m_httpResValueE20003,"{\r\n\"code\":\"1000\",\r\n\"msg\":\"success\",\r\n\"data\":{\r\n\"action\":\"%s\",\r\n\"checkResult\":\"%s\"\r\n}\r\n}",strAction.c_str(),strRet.c_str());
+								stResponseInfo.mResValue=string(m_httpResValueE20003);
+								printf("Line:%d,stResponseInfo.mResValue=%s\n",__LINE__,stResponseInfo.mResValue.c_str());
+							}
+							break;
+						case 20001://telStatusVerify
+							{	
+								
+								printf("Line:%d,jTemp[\"quotaValue\"]=%d\n",__LINE__,atoi(jValue["result"].asString().c_str()));
+								if(jValue["result"].asString().find("NULL")!=std::string::npos)
+								{
+									inUseTime = 9;
+								}
+								else
+								{
+									if(atoi(jValue["result"].asString().c_str())== 0 )
+									{
+										inUseTime = 2;
+									}
+									if(atoi(jValue["result"].asString().c_str())== 1)
+									{
+										inUseTime = 1;
+									}
+									if(atoi(jValue["result"].asString().c_str())==2)
+									{
+										inUseTime = 3;
+									}
+								}
+								
+								
+								printf("Line:%d,inUseTime=%d\n",__LINE__,inUseTime);
+								sprintf(m_httpResValueE20003,"{\r\n\"code\":\"1000\",\r\n\"msg\":\"success\",\r\n\"data\":{\r\n\"action\":\"%s\",\r\n\"telStatus\":%d\r\n}\r\n}",strAction.c_str(),inUseTime);
+								stResponseInfo.mResValue=string(m_httpResValueE20003);
+								printf("Line:%d,stResponseInfo.mResValue=%s\n",__LINE__,stResponseInfo.mResValue.c_str());
+							}
+							break;
+						case 20003://telServiceLifeQuery
 							{	
 								
 								printf("Line:%d,jTemp[\"quotaValue\"]=%d\n",__LINE__,atoi(jValue["result"].asString().c_str()));
@@ -1191,25 +1351,10 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 								}
 								
 								
-								printf("inUseTime=%d\n",inUseTime);
+								printf("Line:%d,inUseTime=%d\n",__LINE__,inUseTime);
 								sprintf(m_httpResValueE20003,"{\r\n\"code\":\"1000\",\r\n\"msg\":\"success\",\r\n\"data\":{\r\n\"action\":\"%s\",\r\n\"inUseTime\":%d\r\n}\r\n}",strAction.c_str(),inUseTime);
 								stResponseInfo.mResValue=string(m_httpResValueE20003);
-								printf("stResponseInfo.mResValue=%s\n",stResponseInfo.mResValue.c_str());
-							}
-							break;
-						case 10001:
-						case 10002:
-						case 10003://userIdentity
-							{	
-								std::string strRet = "01";
-								printf("Line:%d,jTemp[\"quotaValue\"]=%d\n",__LINE__,atoi(jTemp["quotaValue"].asString().c_str()));
-								if(jValue["result"].asString().find("1")!=std::string::npos)
-								{
-									strRet = "00";
-								}
-								sprintf(m_httpResValueE20003,"{\r\n\"code\":\"1000\",\r\n\"msg\":\"success\",\r\n\"data\":{\r\n\"action\":\"%s\",\r\n\"checkResult\":\"%s\"\r\n}\r\n}",strAction.c_str(),strRet.c_str());
-								stResponseInfo.mResValue=string(m_httpResValueE20003);
-								printf("stResponseInfo.mResValue=%s\n",stResponseInfo.mResValue.c_str());
+								printf("Line:%d,stResponseInfo.mResValue=%s\n",__LINE__,stResponseInfo.mResValue.c_str());
 							}
 							break;
 						default:
@@ -1222,6 +1367,7 @@ int CTaskMain::BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stRes
 
 
 	}
+	
     return SUCCESS;
 
 	#if 0
@@ -1454,8 +1600,8 @@ int CTaskMain::BdxSendRespones(BDXREQUEST_S& stRequestInfo, BDXRESPONSE_S& stAdx
 		return LINKERROR;
 	}
 
-	CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stAdxRes.ssUserName].m_ullResNum++;
-	CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stAdxRes.ssUserName].m_ullTotalResNum++;
+	//CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stAdxRes.ssUserName].m_ullResNum++;
+	//CUserQueryWorkThreads::m_vecReport[m_uiThreadId].m_strUserInfo[stAdxRes.ssUserName].m_ullTotalResNum++;
 	
 	if(stAdxRes.queryType==1)// 1 query user index ,2 query goods 
 	{
@@ -1557,7 +1703,7 @@ std::string CTaskMain::BdxTaskMainGetDate(const time_t ttime)
 	return std::string(dt);
 }
 
-std::string CTaskMain::BdxTaskMainGetMonth(const time_t ttime)
+std::string CTaskMain::BdxTaskMainGetLastTwoMonth(const time_t ttime)
 {
 
 	time_t tmpTime;
@@ -1565,6 +1711,7 @@ std::string CTaskMain::BdxTaskMainGetMonth(const time_t ttime)
 		tmpTime = time(0);
 	else
 		tmpTime = ttime;
+	tmpTime -= 86400*61;
 	struct tm* timeinfo = localtime(&tmpTime);
 	char dt[20];
 	memset(dt, 0, 20);

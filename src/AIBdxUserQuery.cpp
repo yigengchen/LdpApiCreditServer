@@ -41,9 +41,9 @@ int main(int argc, char *argv[]) {
 		{"version",0,0,'v'},
 		{0,0,0,0},
 	};
-	std::string	ctc = "133,153,180,181,189,176";
+	std::string	ctc = "133,153,180,181,189";
 	std::string cmc = "134,135,136,137,138,139,147,150,151,152,157,158,159,182,183,184,187,188,178";
-	std::string cuc = "130,131,132,145,155,156,185,186,177";
+	std::string cuc = "130,131,132,145,155,156,185,186,177,176";
 	mapIntStringOperator.insert(std::pair<int,std::string>(0,"unknown"));
 	mapIntStringOperator.insert(std::pair<int,std::string>(1,ctc));
 	mapIntStringOperator.insert(std::pair<int,std::string>(2,cmc));

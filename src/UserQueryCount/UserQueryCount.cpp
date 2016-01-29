@@ -53,7 +53,7 @@ void CUserQueryCount::Core()
 		for(itr = m_stReport.m_strUserInfo.begin();itr!= m_stReport.m_strUserInfo.end();itr++)
 		{
 			fprintf(m_pFile, "%04d-%02d-%02d %02d:%02d\t", timeinfo->tm_year + 1900, timeinfo->tm_mon + 1,timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min);
-			fprintf(m_pFile,"%s\t%llu\t%llu\t%llu\t%llu\t%llu\n",itr->first.c_str(),itr->second.m_ullReqNum,itr->second.m_ullResNum,itr->second.m_ullEmptyResNum,itr->second.m_ullResTagNum,itr->second.m_ullResErrorNum);
+			fprintf(m_pFile,"%s\t%llu\t%llu\t%llu\t%llu\n",itr->first.c_str(),itr->second.m_ullReqNum,itr->second.m_ullResNum,itr->second.m_ullEmptyResNum,itr->second.m_ullResTagNum);
 		}
 		
 		fflush(m_pFile);

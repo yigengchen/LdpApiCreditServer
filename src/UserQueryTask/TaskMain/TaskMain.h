@@ -21,13 +21,13 @@ public:
 	virtual int BdxRunTask(BDXREQUEST_S& stRequestInfo, BDXRESPONSE_S& stResponseInfo);
 //protected:
 
-	int BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stResponseInfo,std::string &retKey,std::string &retKeyType,std::string &retUser,std::string &errorMsg);
+	int BdxGetHttpPacket(BDXREQUEST_S& stRequestInfo,BDXRESPONSE_S &stResponseInfo,std::string &strAccessKeyId,std::string &retKey,std::string &retKeyType,std::string &retUser,std::string &errorMsg);
 	int BdxParseHttpPacket(char*& pszBody, u_int& uiBodyLen, const u_int uiParseLen);
 	int BdxParseBody(char *pszBody, u_int uiBodyLen, BDXREQUEST_S& stRequestInfo);
 	int BdxSendEmpyRespones(std::string errorMsg);
 	int BdxSendRespones(BDXREQUEST_S& stRequestInfo, BDXRESPONSE_S& stAdxRes,std::string errorMsg);
 	std::string BdxTaskMainGetDate(const time_t ttime = 0);
-	std::string BdxTaskMainGetMonth(const time_t ttime = 0);
+	std::string BdxTaskMainGetLastTwoMonth(const time_t ttime = 0);
 	string   BdxTaskMainReplace_All(string    str,   string   old_value,   string   new_value);
 
 	std::string BdxTaskMainGetTime(const time_t ttime = 0);

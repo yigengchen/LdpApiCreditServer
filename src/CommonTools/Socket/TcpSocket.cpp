@@ -318,7 +318,7 @@ int CTcpSocket::TcpRead(void *const pvRecvBuf, size_t sizeRecvLen)
 		return -1;
 	}
 	struct timeval stTimeout;
-	stTimeout.tv_sec =0;// m_uiTimeout;
+	stTimeout.tv_sec = 32;// m_uiTimeout;
 	stTimeout.tv_usec = m_uiTimeout;
 	//int sock_buf_size=9012;
 

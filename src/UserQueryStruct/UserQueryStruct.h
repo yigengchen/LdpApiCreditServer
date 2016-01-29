@@ -124,6 +124,7 @@ typedef struct {
 typedef struct M_HIVELOG
 {
 std::string strAccessKeyId;
+int			iSource;
 std::string strTelNo;
 std::string strTimeStamp;
 std::string strLiveTime;
@@ -131,6 +132,7 @@ std::string strSinature;
 std::string strAuthId;
 std::string strCustName;
 std::string strAction;
+std::string strMd5Key;
 std::string strReqParams;
 std::string strValue;
 std::string strQuerytime;
@@ -140,6 +142,7 @@ std::string strHourId;
 void operator =(const M_HIVELOG &hive) 
 {
 	strAccessKeyId	=	hive.strAccessKeyId;
+	iSource		=	hive.iSource;
 	strTelNo		=	hive.strTelNo;
 	strTimeStamp	=	hive.strTimeStamp;
 	strLiveTime		=	hive.strLiveTime;
@@ -147,6 +150,7 @@ void operator =(const M_HIVELOG &hive)
 	strAuthId		=	hive.strAuthId;
 	strCustName		=	hive.strCustName;  
 	strAction		=	hive.strAction; 
+	strMd5Key		=	hive.strMd5Key; 
 	strReqParams	=	hive.strReqParams;
 	strValue		=	hive.strValue;
 	strQuerytime	=	hive.strQuerytime;

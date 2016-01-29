@@ -32,6 +32,7 @@ public:
 
 public:
 	bool UserPut(string &uid,const string &rule);
+	bool UserPutExpire(string &uid,const string &rule,int32_t expiration);
 private:
 	uint32_t			serv_count_;
 	CDataRedis  			*data_;
