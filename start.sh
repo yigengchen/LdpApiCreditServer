@@ -11,6 +11,6 @@ sed -i 's/MYSQL_SERVER_USERNAME/'$MYSQL_USER'/g'  ./config/userQuery.conf
 sed -i 's/MYSQL_SERVER_PASSWORD/'$MYSQL_ROOT_PASSWORD'/g'  ./config/userQuery.conf
 sed -i 's/MYSQL_SERVER_DBNAME/'$MYSQL_DATABASE'/g'  ./config/userQuery.conf
 sed -i 's/LOCAL_PORT/'$API_PORT'/g'  ./config/userQuery.conf
-sed -i 's/THREADS/'$API_THREAD_NUM'/g' ./config/userQuery.conf
+sed -i 's/MYNUMS/'$API_THREAD_NUM'/g' ./config/userQuery.conf
 rm -rf objs src
 ./LdpApiServer -c ./config/userQuery.conf -n query
